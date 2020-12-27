@@ -1,2 +1,2 @@
-pub mod tf;
 pub mod idf;
+pub mod tf;

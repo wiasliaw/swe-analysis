@@ -39,7 +39,7 @@ impl<'a> TF<'a> {
 
     pub fn calculate_tf(self, s: &'a str) -> f32 {
         match self.get(s) {
-            Some(v) => (*v as f32)/(self.total as f32),
+            Some(v) => (*v as f32) / (self.total as f32),
             None => 0f32,
         }
     }

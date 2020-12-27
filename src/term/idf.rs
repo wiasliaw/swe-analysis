@@ -39,7 +39,7 @@ impl<'a> IDF<'a> {
             Some(v) => {
                 let tmp = (self.total_docs as f32).abs() / (*v as f32);
                 tmp.log10()
-            },
+            }
             None => 0f32,
         }
     }
