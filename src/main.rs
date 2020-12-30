@@ -51,10 +51,27 @@ fn main() {
                         None
                     }
                 })
-                .map(|t| en_stemmer.stem(t).to_string())
+                .map(|t| {
+                    en_stemmer.stem(t).to_string()
+                    // t.to_string()
+                })
                 .collect(),
         })
         .collect();
+
+    // remove the same
+    let pre_2_data: Vec<StageData> = pre_2_data.iter().map(|data| {
+        let mut v = Vec::new();
+        data.term_split.iter().for_each(|t| {
+            if !v.contains(t) {
+                v.push(t.to_string())
+            }
+        });
+        StageData {
+            title: data.title.clone(),
+            term_split: v.to_owned(),
+        }
+    }).collect();
 
     // idf
     let mut idf = IDF::new();
