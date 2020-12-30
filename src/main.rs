@@ -58,12 +58,10 @@ fn main() {
 
     // idf
     let mut idf = IDF::new();
-    idf.update_total(pre_2_data.len() as i128);
     for data in pre_2_data.iter() {
-        data.term_split
-            .iter()
-            .for_each(|t| idf.insert(t.to_string()));
+        idf.insert(data.term_split.clone());
     }
+
     // tf
     let mut pre_3_data: Vec<Vec<LabelData>> = Vec::new();
 
@@ -80,7 +78,7 @@ fn main() {
                 LabelData {
                     term: t.to_string(),
                     tf: tf.calculate_tf(t.to_string()),
-                    idf: idf.calculate_idf(t.to_string()),
+                    idf: idf.clone().calculate_idf(t.to_string()),
                 }
             })
             .collect();
@@ -88,6 +86,6 @@ fn main() {
     }
 
     // write
-    // let mut f = File::create("./tmp/pre_3_data.json").unwrap();
-    // write!(&mut f, "{:#?}", pre_3_data);
+    let mut f = File::create("./tmp/pre_3_data.json").unwrap();
+    write!(&mut f, "{:#?}", pre_3_data);
 }
