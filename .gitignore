@@ -13,3 +13,4 @@ Cargo.lock
 # data folder
 data/*.json
 sample*
+tmp*

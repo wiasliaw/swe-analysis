@@ -1,3 +1,6 @@
+use std::io::Write;
+use std::fs::File;
+
 extern crate rust_stemmers;
 extern crate vtext;
 
@@ -8,7 +11,9 @@ mod term;
 mod types;
 mod utils;
 
-use types::StageData;
+use term::idf::IDF;
+use term::tf::TF;
+use types::{LabelData, StageData};
 use utils::common::{contains_common, contains_illegal};
 
 fn main() {
@@ -51,5 +56,38 @@ fn main() {
         })
         .collect();
 
-    println!("{:?}", pre_2_data);
+    // idf
+    let mut idf = IDF::new();
+    idf.update_total(pre_2_data.len() as i128);
+    for data in pre_2_data.iter() {
+        data.term_split
+            .iter()
+            .for_each(|t| idf.insert(t.to_string()));
+    }
+    // tf
+    let mut pre_3_data: Vec<Vec<LabelData>> = Vec::new();
+
+    for data in pre_2_data.iter() {
+        let mut tf = TF::new();
+        data.term_split
+            .iter()
+            .for_each(|t| tf.insert(t.to_string()));
+        let d: Vec<LabelData> = data
+            .term_split
+            .iter()
+            .map(|t| {
+                let tf = tf.clone();
+                LabelData {
+                    term: t.to_string(),
+                    tf: tf.calculate_tf(t.to_string()),
+                    idf: idf.calculate_idf(t.to_string()),
+                }
+            })
+            .collect();
+        pre_3_data.push(d);
+    }
+
+    // write
+    // let mut f = File::create("./tmp/pre_3_data.json").unwrap();
+    // write!(&mut f, "{:#?}", pre_3_data);
 }

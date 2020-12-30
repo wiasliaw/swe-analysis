@@ -1,32 +1,32 @@
 use std::collections::HashMap;
 
 #[derive(Debug)]
-pub struct IDF<'a> {
+pub struct IDF {
     pub total_docs: i128,
-    pub terms: HashMap<&'a str, i32>,
+    pub terms: HashMap<String, i32>,
 }
 
-impl<'a> IDF<'a> {
+impl IDF {
     pub fn new() -> Self {
         Self {
             total_docs: 0,
-            terms: HashMap::<&'a str, i32>::new(),
+            terms: HashMap::<String, i32>::new(),
         }
     }
 
-    pub fn insert(&mut self, s: &'a str) {
+    pub fn insert(&mut self, s: String) {
         let entity = self.terms.entry(s).or_insert(0);
         *entity += 1;
     }
 
-    pub fn get(&self, s: &'a str) -> Option<&i32> {
-        match self.terms.get_key_value(s) {
+    pub fn get(&self, s: String) -> Option<&i32> {
+        match self.terms.get_key_value(&s) {
             Some((_, v)) => Some(v),
             None => None,
         }
     }
 
-    pub fn delete(&mut self, s: &'a str) -> Option<i32> {
+    pub fn delete(&mut self, s: String) -> Option<i32> {
         self.terms.remove(&s)
     }
 
@@ -34,11 +34,11 @@ impl<'a> IDF<'a> {
         self.total_docs = t;
     }
 
-    pub fn calculate_idf(&self, s: &'a str) -> f32 {
+    pub fn calculate_idf(&self, s: String) -> f32 {
         match self.get(s) {
             Some(v) => {
-                let tmp = (self.total_docs as f32).abs() / (*v as f32);
-                tmp.log10()
+                let tmp = ((self.total_docs as f32) / (*v as f32)).log10();
+                tmp
             }
             None => 0f32,
         }
@@ -59,22 +59,32 @@ mod tests {
     #[test]
     fn test_insert() {
         let mut idf = IDF::new();
-        idf.insert(&"People");
-        idf.insert(&"Hello");
-        idf.insert(&"People");
-        assert_eq!(Some(&2), idf.get(&"People"));
-        assert_eq!(Some(&1), idf.get(&"Hello"));
-        assert_eq!(None, idf.get(&"World"));
+        let cases = vec!["People", "Hello", "People"];
+        cases
+            .iter()
+            .map(|c| c.to_string())
+            .for_each(|s| {
+                idf.insert(s)
+            });
+
+        assert_eq!(Some(&2), idf.get("People".to_string()));
+        assert_eq!(Some(&1), idf.get("Hello".to_string()));
+        assert_eq!(None, idf.get("World".to_string()));
     }
 
     #[test]
     fn test_delete() {
         let mut idf = IDF::new();
-        idf.insert(&"People");
-        idf.insert(&"Hello");
-        idf.insert(&"People");
-        assert_eq!(Some(1), idf.delete(&"Hello"));
-        assert_eq!(None, idf.delete(&"Hello"));
+        let cases = vec!["People", "Hello", "People"];
+        cases
+            .iter()
+            .map(|c| c.to_string())
+            .for_each(|s| {
+                idf.insert(s)
+            });
+
+        assert_eq!(Some(1), idf.delete("Hello".to_string()));
+        assert_eq!(None, idf.delete("Hello".to_string()));
     }
 
     #[test]
@@ -88,13 +98,13 @@ mod tests {
     fn test_calculate() {
         let mut idf = IDF::new();
         for _ in 0..10 {
-            idf.insert(&"People");
+            idf.insert("People".to_string());
         }
         for _ in 0..100 {
-            idf.insert(&"Hello");
+            idf.insert("Hello".to_string());
         }
         idf.update_total(100);
-        assert_eq!(1f32, idf.calculate_idf(&"People"));
-        assert_eq!(0f32, idf.calculate_idf(&"Hello"));
+        assert_eq!(2f32, idf.calculate_idf("People".to_string()));
+        assert_eq!(0f32, idf.calculate_idf("Hello".to_string()));
     }
 }
